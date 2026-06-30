@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mở quầy / Đóng quầy — VIKKI Digital Bank</title>
+<style>
+  :root{
+    --grad-1:#FF8A3D;
+    --grad-2:#7B2FF7;
+    --grad-3:#E91E8C;
+    --ink:#1F2430;
+    --ink-soft:#5B6478;
+    --line:#E7E9EE;
+    --bg:#F5F6FA;
+    --panel:#FFFFFF;
+    --orange:#F5A623;
+    --orange-dark:#D6890C;
+    --green:#1AA15A;
+    --green-bg:#E8F8EF;
+    --red:#E5484D;
+    --red-bg:#FDECEC;
+    --blue:#2D6CDF;
+    --blue-bg:#EAF1FD;
+    --grey-bg:#F1F2F6;
+    --radius:10px;
+    --shadow:0 8px 24px rgba(20,20,43,.08);
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-size:14px;}
+  a{color:inherit;}
+
+  /* ---------- HEADER ---------- */
+  .topbar{
+    height:56px;display:flex;align-items:center;
+    background:linear-gradient(90deg,var(--grad-1) 0%,var(--grad-2) 55%,var(--grad-3) 100%);
+    color:#fff;padding:0 14px;gap:14px;position:sticky;top:0;z-index:50;
+  }
+  .topbar .home{width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);border-radius:8px;flex:0 0 auto;}
+  .topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.3px;flex:0 0 auto;}
+  .topbar .brand .logo-dot{width:20px;height:20px;border-radius:50%;background:#fff;display:inline-block;}
+  .topbar .env{font-size:12.5px;opacity:.92;font-weight:500;white-space:nowrap;}
+  .topbar .search{
+    margin-left:18px;flex:0 1 320px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);
+    border-radius:8px;display:flex;align-items:center;padding:6px 10px;gap:6px;
+  }
+  .topbar .search input{background:transparent;border:0;outline:0;color:#fff;font-size:13px;width:100%;}
+  .topbar .search input::placeholder{color:rgba(255,255,255,.75);}
+  .topbar .spacer{flex:1;}
+  .topbar .icon-btn{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;background:rgba(255,255,255,.08);}
+  .topbar .icon-btn:hover{background:rgba(255,255,255,.2);}
+  .topbar .badge{position:absolute;top:-4px;right:-4px;background:#fff;color:var(--grad-3);font-size:10px;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;}
+  .topbar .user{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);padding:5px 10px;border-radius:20px;cursor:pointer;}
+  .topbar .user .avatar{width:24px;height:24px;border-radius:50%;background:#fff;color:var(--grad-2);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;}
+  .topbar .user .meta{line-height:1.15;}
+  .topbar .user .meta b{font-size:12.5px;display:block;}
+  .topbar .user .meta span{font-size:10.5px;opacity:.85;}
+  .topbar .lang{background:rgba(255,255,255,.16);border-radius:14px;font-size:11.5px;font-weight:700;padding:4px 10px;}
+
+  /* ---------- LAYOUT ---------- */
+  .shell{display:flex;min-height:calc(100vh - 56px);}
+  .sidebar{
+    width:250px;background:#fff;border-right:1px solid var(--line);
+    flex:0 0 auto;padding:14px 10px 30px;
+  }
+  .sidebar .sb-search{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin-bottom:14px;color:var(--ink-soft);}
+  .sidebar .sb-search input{border:0;outline:0;width:100%;font-size:13px;}
+  .nav-group{margin-bottom:2px;}
+  .nav-head{
+    display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:8px;cursor:pointer;
+    font-weight:600;color:var(--ink);font-size:13.3px;
+  }
+  .nav-head:hover{background:var(--grey-bg);}
+  .nav-head .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+  .nav-head .chev{margin-left:auto;color:var(--ink-soft);font-size:11px;transition:transform .15s;}
+  .nav-group.open .chev{transform:rotate(90deg);}
+  .nav-children{display:none;padding-left:30px;margin-top:2px;}
+  .nav-group.open .nav-children{display:block;}
+  .nav-children a{
+    display:block;padding:7px 8px;border-radius:8px;font-size:12.8px;color:var(--ink-soft);text-decoration:none;
+    margin-bottom:1px;
+  }
+  .nav-children a:hover{background:var(--grey-bg);color:var(--ink);}
+  .nav-children a.active{background:#FFF1E6;color:var(--orange-dark);font-weight:700;}
+
+  .main{flex:1;min-width:0;padding:18px 22px 60px;}
+
+  /* ---------- BANNER ---------- */
+  .banner{
+    position:relative;height:150px;border-radius:var(--radius);overflow:hidden;margin-bottom:16px;
+    background:
+      linear-gradient(100deg,rgba(20,15,35,.55),rgba(20,15,35,.15) 55%,rgba(20,15,35,.05)),
+      linear-gradient(120deg,#3b2f63,#7c4f8a 40%,#caa371 75%,#e9c79a);
+  }
+  .banner::after{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(to top, rgba(15,10,25,.35), transparent 60%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 18px, transparent 18px 46px);
+  }
+  .banner h1{position:relative;z-index:2;color:#fff;margin:0;padding:24px 28px;font-size:24px;font-weight:700;letter-spacing:.2px;}
+  .banner .sub{position:relative;z-index:2;color:rgba(255,255,255,.85);padding:0 28px;font-size:12.6px;margin-top:-12px;}
+
+  /* ---------- ALERT BANNER (FR-13) ---------- */
+  .alert-strip{
+    display:flex;align-items:flex-start;gap:10px;background:#FFF6E5;border:1px solid #F7D78C;color:#8A5A00;
+    border-radius:var(--radius);padding:11px 14px;margin-bottom:16px;font-size:13px;
+  }
+  .alert-strip strong{font-weight:700;}
+  .alert-strip .close-x{margin-left:auto;cursor:pointer;color:#8A5A00;opacity:.7;font-size:15px;line-height:1;}
+  .alert-strip .close-x:hover{opacity:1;}
+
+  /* ---------- CARD ---------- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px;}
+  .card h2{font-size:15px;margin:0 0 14px;font-weight:700;}
+  .card h2 .req-tag{font-size:10.5px;font-weight:700;color:var(--blue);background:var(--blue-bg);padding:2px 7px;border-radius:6px;margin-left:8px;vertical-align:1px;}
+
+  /* status overview row */
+  .status-row{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .status-block{display:flex;align-items:center;gap:12px;}
+  .status-block .label{font-size:11.5px;color:var(--ink-soft);display:block;margin-bottom:3px;}
+  .status-block .value{font-size:16px;font-weight:700;}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;font-size:12.5px;font-weight:700;}
+  .pill .dot{width:7px;height:7px;border-radius:50%;}
+  .pill.active{background:var(--green-bg);color:var(--green);}
+  .pill.active .dot{background:var(--green);}
+  .pill.closed{background:var(--red-bg);color:var(--red);}
+  .pill.closed .dot{background:#9aa0ad;}
+  .pill.pending{background:#FFF3DC;color:#A56B00;}
+  .pill.pending .dot{background:#E5A100;}
+
+  .row-actions{margin-left:auto;display:flex;gap:10px;}
+
+  /* buttons */
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;color:var(--ink);transition:.12s;}
+  .btn:hover{background:var(--grey-bg);}
+  .btn.primary{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .btn.primary:hover{background:var(--orange-dark);}
+  .btn.outline-primary{background:#fff;border-color:var(--orange);color:var(--orange-dark);}
+  .btn.outline-primary:hover{background:#FFF6E9;}
+  .btn.danger{background:var(--red);border-color:var(--red);color:#fff;}
+  .btn.danger:hover{background:#cf3338;}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--blue);padding:6px 4px;}
+  .btn.ghost:hover{text-decoration:underline;background:transparent;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btn.sm{padding:6px 11px;font-size:12px;}
+
+  /* filters */
+  .filters{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:12px;color:var(--ink-soft);font-weight:600;}
+  .field input,.field select{
+    border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px;outline:0;background:#fff;color:var(--ink);
+  }
+  .field input:focus,.field select:focus{border-color:var(--grad-2);}
+  .filters-foot{display:flex;justify-content:flex-end;margin-top:14px;gap:10px;}
+
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:12.8px;}
+  thead th{
+    text-align:left;color:var(--ink-soft);font-weight:700;font-size:11.8px;text-transform:none;
+    border-bottom:1px solid var(--line);padding:10px 10px;white-space:nowrap;background:#FAFAFC;
+  }
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--ink);}
+  tbody tr:hover{background:#FBFAFE;}
+  .req-link{color:var(--blue);font-weight:700;cursor:pointer;}
+  .req-link:hover{text-decoration:underline;}
+  .badge{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:700;}
+  .badge.open-op{background:var(--blue-bg);color:var(--blue);}
+  .badge.close-op{background:#F3E8FE;color:#7B2FF7;}
+  .badge.success{background:var(--green-bg);color:var(--green);}
+  .badge.blocked{background:var(--red-bg);color:var(--red);}
+  .badge.muted{background:var(--grey-bg);color:var(--ink-soft);}
+  .table-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;color:var(--ink-soft);font-size:12.5px;}
+  .pager{display:flex;gap:6px;align-items:center;}
+  .pager button{border:1px solid var(--line);background:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;color:var(--ink-soft);}
+  .pager button.cur{background:var(--orange);color:#fff;border-color:var(--orange);font-weight:700;}
+
+  /* demo control dock */
+  .demo-dock{
+    position:fixed;right:18px;bottom:18px;z-index:80;width:296px;background:#1F2430;color:#fff;
+    border-radius:14px;box-shadow:0 14px 38px rgba(0,0,0,.35);font-size:12.5px;overflow:hidden;
+  }
+  .demo-dock .dd-head{display:flex;align-items:center;gap:8px;padding:11px 14px;background:linear-gradient(90deg,var(--grad-2),var(--grad-3));font-weight:700;cursor:pointer;}
+  .demo-dock .dd-head .chev{margin-left:auto;transition:.15s;}
+  .demo-dock.collapsed .dd-body{display:none;}
+  .demo-dock.collapsed .dd-head .chev{transform:rotate(180deg);}
+  .dd-body{padding:13px 14px 15px;display:flex;flex-direction:column;gap:12px;}
+  .dd-body .dd-item label{display:block;color:#B9BECB;font-size:11px;margin-bottom:6px;font-weight:600;letter-spacing:.2px;text-transform:uppercase;}
+  .dd-toggle{display:flex;gap:6px;}
+  .dd-toggle button{flex:1;background:#2B3142;border:1px solid #3A4156;color:#D7DAE3;border-radius:7px;padding:7px 6px;font-size:11.5px;cursor:pointer;font-weight:600;}
+  .dd-toggle button.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .dd-note{color:#8D93A3;font-size:10.6px;line-height:1.4;}
+
+  /* ---------- MODALS ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(15,15,28,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .modal.wide{max-width:720px;}
+  .modal-head{display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line);gap:10px;}
+  .modal-head h3{margin:0;font-size:16px;font-weight:700;flex:1;}
+  .modal-head .req-tag{font-size:10.5px;font-weight:700;color:var(--blue);background:var(--blue-bg);padding:2px 7px;border-radius:6px;}
+  .modal-head .x{cursor:pointer;color:var(--ink-soft);font-size:18px;}
+  .modal-body{padding:20px 22px;}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--line);}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-grid .full{grid-column:1/-1;}
+  .field textarea{border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px;outline:0;resize:vertical;min-height:62px;font-family:inherit;}
+  .field.readonly input{background:#FAFAFC;color:var(--ink-soft);}
+  .hint{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+
+  .banner-msg{display:flex;gap:11px;border-radius:10px;padding:13px 14px;font-size:13px;align-items:flex-start;margin-bottom:16px;}
+  .banner-msg.error{background:var(--red-bg);color:#9A1F22;border:1px solid #F5C2C3;}
+  .banner-msg.success{background:var(--green-bg);color:#0E6B3A;border:1px solid #B8E8CC;}
+  .banner-msg.info{background:var(--blue-bg);color:#1C4A91;border:1px solid #BFD7F7;}
+  .banner-msg .ic{font-size:17px;line-height:1;flex:0 0 auto;}
+  .banner-msg b{display:block;margin-bottom:2px;}
+
+  .step-box{border:1px dashed var(--line);border-radius:10px;padding:16px;text-align:center;color:var(--ink-soft);}
+  .spinner{width:26px;height:26px;border-radius:50%;border:3px solid #E7E9EE;border-top-color:var(--grad-2);animation:spin 0.8s linear infinite;margin:0 auto 10px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .mini-table{width:100%;border-collapse:collapse;font-size:12.3px;margin-top:10px;}
+  .mini-table th{text-align:left;background:#FAFAFC;color:var(--ink-soft);font-weight:700;padding:8px;border-bottom:1px solid var(--line);}
+  .mini-table td{padding:8px;border-bottom:1px solid var(--line);}
+  .mini-table tr:last-child td{border-bottom:0;}
+
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;font-size:13px;margin-top:14px;}
+  .summary-grid .k{color:var(--ink-soft);}
+  .summary-grid .v{font-weight:700;}
+
+  /* drawer */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(15,15,28,.35);display:none;z-index:99;}
+  .drawer-overlay.show{display:block;}
+  .drawer{
+    position:fixed;top:0;right:-460px;width:440px;height:100%;background:#fff;z-index:101;
+    box-shadow:-12px 0 32px rgba(0,0,0,.18);transition:right .22s ease;overflow:auto;
+  }
+  .drawer.show{right:0;}
+  .drawer-head{display:flex;align-items:center;gap:10px;padding:18px 20px;border-bottom:1px solid var(--line);}
+  .drawer-head h3{margin:0;font-size:15.5px;flex:1;}
+  .drawer-body{padding:20px;}
+  .timeline{position:relative;padding-left:22px;margin-top:6px;}
+  .timeline::before{content:"";position:absolute;left:6px;top:4px;bottom:4px;width:2px;background:var(--line);}
+  .t-item{position:relative;padding-bottom:18px;}
+  .t-item::before{content:"";position:absolute;left:-22px;top:3px;width:11px;height:11px;border-radius:50%;background:var(--grad-2);border:2px solid #fff;box-shadow:0 0 0 2px var(--line);}
+  .t-item .t-time{font-size:11px;color:var(--ink-soft);}
+  .t-item .t-title{font-weight:700;font-size:13px;margin:2px 0;}
+  .t-item .t-desc{font-size:12.3px;color:var(--ink-soft);}
+
+  /* toast */
+  .toast-wrap{position:fixed;top:74px;right:22px;z-index:120;display:flex;flex-direction:column;gap:10px;}
+  .toast{
+    min-width:300px;max-width:360px;background:#fff;border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.18);
+    padding:13px 15px;display:flex;gap:10px;align-items:flex-start;border-left:4px solid var(--blue);
+    animation:slidein .2s ease;
+  }
+  @keyframes slidein{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  .toast.success{border-color:var(--green);}
+  .toast.error{border-color:var(--red);}
+  .toast .t-ic{font-size:16px;}
+  .toast .t-txt b{display:block;font-size:13px;margin-bottom:2px;}
+  .toast .t-txt span{font-size:12px;color:var(--ink-soft);}
+
+  /* reference panel */
+  .ref-toggle{display:flex;align-items:center;gap:8px;color:var(--blue);font-weight:700;cursor:pointer;font-size:13px;}
+  .ref-table{width:100%;border-collapse:collapse;font-size:12.3px;margin-top:12px;display:none;}
+  .ref-table.show{display:table;}
+  .ref-table th{text-align:left;background:#FAFAFC;padding:8px;border-bottom:1px solid var(--line);color:var(--ink-soft);}
+  .ref-table td{padding:8px;border-bottom:1px solid var(--line);}
+  .ref-table .id{font-weight:700;color:var(--grad-2);white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<!-- ============ TOPBAR ============ -->
+<div class="topbar">
+  <div class="home">⌂</div>
+  <div class="brand"><span class="logo-dot"></span> VIKKI&nbsp;BANK</div>
+  <div class="env">VIKKI DIGITAL BANK (UAT - Môi trường kiểm thử - release-2026-06-26)</div>
+  <div class="search">🔍 <input placeholder="Nhập ID màn hình cần tìm"></div>
+  <div class="spacer"></div>
+  <div class="icon-btn" title="Thông tin">ⓘ</div>
+  <div class="icon-btn" title="Thông báo">🔔<span class="badge">3</span></div>
+  <div class="user">
+    <div class="avatar">A1</div>
+    <div class="meta"><b>Admin The One</b><span>Role Vikki Admin - 999 (ADMIN001)</span></div>
+  </div>
+  <div class="lang">★ VIE</div>
+  <div class="icon-btn" title="Đăng xuất">⏻</div>
+</div>
+
+<div class="shell">
+  <!-- ============ SIDEBAR ============ -->
+  <div class="sidebar">
+    <div class="sb-search">🔍 <input placeholder="Tìm chức năng…"></div>
+
+    <div class="nav-group">
+      <div class="nav-head"><span class="dot" style="background:#2D9CDB"></span> Accounting &amp; GL <span class="chev">›</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-head"><span class="dot" style="background:#F2994A"></span> Quản lý ngân quỹ <span class="chev">›</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-head"><span class="dot" style="background:#27AE60"></span> Báo cáo <span class="chev">›</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-head"><span class="dot" style="background:#9B51E0"></span> Danh sách tính năng Plan… <span class="chev">›</span></div>
+    </div>
+
+    <div class="nav-group open" id="navCounter">
+      <div class="nav-head" onclick="toggleNav('navCounter')"><span class="dot" style="background:#E91E8C"></span> Quản lý quầy giao dịch <span class="chev">›</span></div>
+      <div class="nav-children">
+        <a class="active" href="#main">↳ Mở quầy / Đóng quầy</a>
+        <a href="#" onclick="return false;">↳ Lịch sử mở/đóng quầy</a>
+        <a href="#" onclick="return false;">↳ Cấu hình giờ đóng quầy</a>
+      </div>
+    </div>
+
+    <div class="nav-group" id="navAdmin">
+      <div class="nav-head" onclick="toggleNav('navAdmin')"><span class="dot" style="background:#EB5757"></span> Quản trị hệ thống <span class="chev">›</span></div>
+      <div class="nav-children">
+        <a href="#" onclick="return false;">↳ Cấu hình hệ thống</a>
+        <a href="#" onclick="return false;">↳ Quản lý job</a>
+        <a href="#" onclick="return false;">↳ Quản lý thông báo</a>
+        <a href="#" onclick="return false;">↳ Đóng mở ngày đơn vị</a>
+        <a href="#" onclick="return false;">↳ Quản lý danh sách job</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main" id="main">
+
+    <div class="banner">
+      <h1>Mở quầy / Đóng quầy</h1>
+      <div class="sub">Quản lý trạng thái vận hành quầy trong ngày làm việc — CN/PGD 008 · CN TÂN BÌNH</div>
+    </div>
+
+    <!-- FR-13 alert -->
+    <div class="alert-strip" id="closingAlert">
+      <span>⏰</span>
+      <div><strong>Sắp đến giờ đóng quầy.</strong> Quầy 008 - CN TÂN BÌNH chưa được đóng (giờ đóng quy định: 17:00, hiện tại: 16:48). Vui lòng hoàn tất đóng quầy đúng giờ.</div>
+      <span class="close-x" onclick="document.getElementById('closingAlert').style.display='none'">✕</span>
+    </div>
+
+    <!-- ============ STATUS OVERVIEW (FR-09) ============ -->
+    <div class="card">
+      <h2>Trạng thái quầy hiện tại <span class="req-tag">FR-09 · BR-05</span></h2>
+      <div class="status-row">
+        <div class="status-block">
+          <div><span class="label">Đơn vị</span><span class="value" style="font-size:14px">008 - CN TÂN BÌNH</span></div>
+        </div>
+        <div class="status-block">
+          <div><span class="label">Trạng thái quầy</span><span class="pill active" id="counterPill"><span class="dot"></span><span id="counterPillText">Hoạt động</span></span></div>
+        </div>
+        <div class="status-block">
+          <div><span class="label">Mở bởi / lúc</span><span class="value" style="font-size:13px;font-weight:600">GDV_008 · 25/06/2026 08:02</span></div>
+        </div>
+        <div class="status-block">
+          <div><span class="label">Giao dịch chưa duyệt</span><span class="pill pending" id="pendingPill"><span class="dot"></span><span id="pendingPillText">2 giao dịch</span></span></div>
+        </div>
+        <div class="row-actions">
+          <button class="btn outline-primary" id="btnOpenCounter" onclick="openModal('modalOpen')">⊕ Mở quầy</button>
+          <button class="btn primary" id="btnCloseCounter" onclick="startClose()">⊗ Đóng quầy</button>
+          <button class="btn" onclick="viewHistory()">🕘 Xem lịch sử</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ FILTERS ============ -->
+    <div class="card">
+      <h2>Tra cứu yêu cầu mở / đóng quầy</h2>
+      <div class="filters">
+        <div class="field"><label>Mã yêu cầu</label><input placeholder="Nhập mã yêu cầu"></div>
+        <div class="field"><label>Mã CN/PGD</label><input placeholder="VD: 008" value="008"></div>
+        <div class="field"><label>Tên CN/PGD</label><input placeholder="VD: CN TÂN BÌNH" value="CN TÂN BÌNH"></div>
+        <div class="field"><label>Loại nghiệp vụ</label>
+          <select><option value="">Tất cả</option><option>Mở quầy</option><option>Đóng quầy</option></select>
+        </div>
+        <div class="field"><label>Trạng thái hiện tại</label>
+          <select><option value="">Tất cả</option><option>Hoạt động</option><option>Đóng</option></select>
+        </div>
+        <div class="field"><label>Người tạo yêu cầu</label><input placeholder="VD: GDV_008"></div>
+        <div class="field"><label>Ngày tạo yêu cầu (từ)</label><input type="date" value="2026-06-25"></div>
+        <div class="field"><label>Ngày tạo yêu cầu (đến)</label><input type="date" value="2026-06-26"></div>
+      </div>
+      <div class="filters-foot">
+        <button class="btn">Đặt lại</button>
+        <button class="btn primary">🔍 Tìm kiếm</button>
+      </div>
+    </div>
+
+    <!-- ============ LIST ============ -->
+    <div class="card">
+      <h2 style="display:flex;align-items:center;">Danh sách yêu cầu mở / đóng quầy 
+        <span style="margin-left:auto;display:flex;gap:10px;">
+          <button class="btn outline-primary sm" onclick="openModal('modalOpen')">⊕ Mở quầy</button>
+          <button class="btn primary sm" onclick="startClose()">⊗ Đóng quầy</button>
+          <button class="btn sm">⭳ Tải xuống</button>
+        </span>
+      </h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox"></th>
+            <th>Mã yêu cầu ▾</th>
+            <th>Mã CN/PGD</th>
+            <th>Tên CN/PGD</th>
+            <th>Loại nghiệp vụ ▾</th>
+            <th>Trạng thái hiện tại</th>
+            <th>Trạng thái thay đổi</th>
+            <th>Thời gian tạo yêu cầu ▾</th>
+            <th>Người tạo yêu cầu</th>
+            <th>Ghi chú</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="listBody">
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="req-link" onclick="viewDetail('YC-MQ-20260625-0012',true)">YC-MQ-20260625-0012</span></td>
+            <td>008</td><td>CN TÂN BÌNH</td>
+            <td><span class="badge open-op">Mở quầy</span></td>
+            <td><span class="badge muted">Đóng</span></td>
+            <td><span class="badge success">Hoạt động</span></td>
+            <td>25/06/2026 08:02:11</td>
+            <td>GDV_008</td>
+            <td>Mở quầy đầu ca sáng</td>
+            <td><button class="btn ghost" onclick="viewDetail('YC-MQ-20260625-0012',true)">Xem</button></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="req-link" onclick="viewDetail('YC-DQ-20260624-0009',false)">YC-DQ-20260624-0009</span></td>
+            <td>008</td><td>CN TÂN BÌNH</td>
+            <td><span class="badge close-op">Đóng quầy</span></td>
+            <td><span class="badge success">Hoạt động</span></td>
+            <td><span class="badge muted">Đóng</span></td>
+            <td>24/06/2026 17:05:40</td>
+            <td>KSV_008</td>
+            <td>Đóng quầy cuối ngày 24/06</td>
+            <td><button class="btn ghost" onclick="viewDetail('YC-DQ-20260624-0009',false)">Xem</button></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="req-link" onclick="viewDetail('YC-DQ-20260624-0008',true)">YC-DQ-20260624-0008</span></td>
+            <td>008</td><td>CN TÂN BÌNH</td>
+            <td><span class="badge close-op">Đóng quầy</span></td>
+            <td><span class="badge success">Hoạt động</span></td>
+            <td><span class="badge blocked">Bị chặn</span></td>
+            <td>24/06/2026 16:51:02</td>
+            <td>KSV_008</td>
+            <td>Còn 3 GD chưa duyệt — chặn đóng</td>
+            <td><button class="btn ghost" onclick="viewDetail('YC-DQ-20260624-0008',true)">Xem</button></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="req-link" onclick="viewDetail('YC-MQ-20260624-0007',true)">YC-MQ-20260624-0007</span></td>
+            <td>008</td><td>CN TÂN BÌNH</td>
+            <td><span class="badge open-op">Mở quầy</span></td>
+            <td><span class="badge muted">Đóng</span></td>
+            <td><span class="badge success">Hoạt động</span></td>
+            <td>24/06/2026 08:00:54</td>
+            <td>GDV_008</td>
+            <td>—</td>
+            <td><button class="btn ghost" onclick="viewDetail('YC-MQ-20260624-0007',true)">Xem</button></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="req-link" onclick="viewDetail('YC-MQ-20260624-0006',false)">YC-MQ-20260624-0006</span></td>
+            <td>008</td><td>CN TÂN BÌNH</td>
+            <td><span class="badge open-op">Mở quầy</span></td>
+            <td><span class="badge success">Hoạt động</span></td>
+            <td><span class="badge blocked">Từ chối</span></td>
+            <td>24/06/2026 07:58:10</td>
+            <td>GDV_009</td>
+            <td>Quầy đã ở trạng thái Hoạt động — chặn mở trùng (BR-05)</td>
+            <td><button class="btn ghost" onclick="viewDetail('YC-MQ-20260624-0006',false)">Xem</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="table-foot">
+        <span>1-5 bản ghi / 128</span>
+        <div class="pager">
+          <button>«</button><button>‹</button>
+          <button class="cur">1</button><button>2</button><button>3</button>
+          <button>›</button><button>»</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ TRACEABILITY REFERENCE ============ -->
+    <!--<div class="card">
+      <div class="ref-toggle" onclick="toggleRef()">📋 Đối chiếu mockup với yêu cầu BRD (FR / BR / AC) <span id="refChev">▾</span></div>
+      <table class="ref-table" id="refTable">
+        <thead><tr><th>ID</th><th>Yêu cầu</th><th>Thể hiện trong mockup</th></tr></thead>
+        <tbody>
+          <tr><td class="id">FR-01/02/03</td><td>Mở quầy + kiểm tra trùng + audit</td><td>Modal "Mở quầy" — kiểm tra trạng thái, ghi nhận người/thời gian mở</td></tr>
+          <tr><td class="id">BR-05 / AC-06</td><td>Chặn mở trùng khi đang Hoạt động</td><td>Banner lỗi trong modal "Mở quầy" khi trạng thái = Hoạt động</td></tr>
+          <tr><td class="id">FR-05/06/07</td><td>Kiểm tra GD chưa duyệt, chặn đóng, hiển thị danh sách</td><td>Modal "Đóng quầy" — bước kiểm tra, bảng GD vi phạm</td></tr>
+          <tr><td class="id">AC-02 / AC-03</td><td>Chặn đóng + hiển thị lý do, số lượng</td><td>Banner đỏ + bảng chi tiết GD trong modal Đóng quầy</td></tr>
+          <tr><td class="id">FR-11 / AC-07</td><td>Re-check sau khi xử lý GD tồn đọng</td><td>Nút "Kiểm tra lại" trong modal Đóng quầy (không cần thoát màn hình)</td></tr>
+          <tr><td class="id">FR-08 / AC-01 / AC-04</td><td>Đóng quầy thành công + audit</td><td>Bước xác nhận thành công, tóm tắt audit trong modal</td></tr>
+          <tr><td class="id">FR-09</td><td>Xem trạng thái & lịch sử quầy</td><td>Khối "Trạng thái quầy hiện tại" + Drawer lịch sử (Timeline)</td></tr>
+          <tr><td class="id">FR-10 / AC-05</td><td>Chỉ user có quyền mới thao tác</td><td>Toggle "Quyền user" trong bảng điều khiển demo → toast "unauthorized"</td></tr>
+          <tr><td class="id">FR-13</td><td>Cảnh báo gần giờ đóng quầy</td><td>Banner cảnh báo màu vàng phía trên trang</td></tr>
+          <tr><td class="id">4.7 Exception</td><td>Mất kết nối / double-submit khi đóng</td><td>Toggle "Mô phỏng lỗi kết nối" trong bảng điều khiển demo</td></tr>
+        </tbody>
+      </table>
+    </div> -->
+  </div>
+</div>
+
+<!-- ============ DEMO CONTROL DOCK ============ -->
+<div class="demo-dock" id="demoDock">
+  <div class="dd-head" onclick="document.getElementById('demoDock').classList.toggle('collapsed')">
+    🎛️ Bảng điều khiển demo (xem các trạng thái) <span class="chev">▾</span>
+  </div>
+  <div class="dd-body">
+    <div class="dd-item">
+      <label>Kết quả kiểm tra khi đóng quầy</label>
+      <div class="dd-toggle">
+        <button class="on" id="scnOk" onclick="setScenario('ok')">Không có GD chưa duyệt</button>
+        <button id="scnBlock" onclick="setScenario('block')">Còn GD chưa duyệt</button>
+      </div>
+    </div>
+    <div class="dd-item">
+      <label>Quyền người dùng</label>
+      <div class="dd-toggle">
+        <button class="on" id="permYes" onclick="setPerm(true)">Có quyền</button>
+        <button id="permNo" onclick="setPerm(false)">Không có quyền</button>
+      </div>
+    </div>
+    <div class="dd-item">
+      <label>Sự cố kết nối khi commit đóng quầy</label>
+      <div class="dd-toggle">
+        <button class="on" id="connOk" onclick="setConn(true)">Bình thường</button>
+        <button id="connFail" onclick="setConn(false)">Mất kết nối (4.7)</button>
+      </div>
+    </div>
+    <div class="dd-note">Dùng để minh họa đầy đủ các nhánh flow theo BRD: thành công, bị chặn, không có quyền, lỗi kết nối, re-check (FR-11), mở trùng (BR-05).</div>
+  </div>
+</div>
+
+<!-- ============ TOASTS ============ -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ============ MODAL: MỞ QUẦY (FR-01..03, BR-05, AC-06) ============ -->
+<div class="overlay" id="modalOpen">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Mở quầy</h3>
+      <span class="x" onclick="closeModal('modalOpen')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div class="banner-msg error" id="openBlockedMsg" style="display:none">
+        <span class="ic">⛔</span>
+        <div><b>Không thể mở quầy</b>Quầy 008 - CN TÂN BÌNH đang ở trạng thái <strong>Hoạt động</strong>. Hệ thống chặn mở trùng trong cùng ngày làm việc.</div>
+      </div>
+      <div class="banner-msg success" id="openSuccessMsg" style="display:none">
+        <span class="ic">✔</span>
+        <div><b>Mở quầy thành công</b>Quầy đã chuyển sang trạng thái Hoạt động và đã được ghi nhận audit log.</div>
+      </div>
+
+      <div class="form-grid" id="openForm">
+        <div class="field readonly"><label>Mã CN/PGD</label><input value="008" readonly></div>
+        <div class="field readonly"><label>Tên CN/PGD</label><input value="CN TÂN BÌNH" readonly></div>
+        <div class="field readonly"><label>Người tạo yêu cầu</label><input value="GDV_008" readonly></div>
+        <div class="field readonly"><label>Thời gian tạo yêu cầu</label><input value="26/06/2026 16:50:12" readonly></div>
+        <!-- <div class="field full">
+          <label>Số dư / tiền đầu ca <span style="color:var(--ink-soft);font-weight:400">(tùy chọn — theo cấu hình đơn vị)</span></label>
+          <input placeholder="Nhập số dư đầu ca nếu đơn vị yêu cầu">
+          <div class="hint">Mục này còn chờ business xác nhận thêm (xem Inline Comment §1.2 BRD) — hiển thị tùy chọn, không bắt buộc trong bản hiện tại.</div>
+        </div> -->
+        <div class="field full"><label>Ghi chú</label><textarea placeholder="Nhập ghi chú (nếu có)"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modalOpen')">Đóng</button>
+      <button class="btn primary" id="openSubmitBtn" onclick="submitOpen()">Xác nhận mở quầy</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: ĐÓNG QUẦY (FR-04..08, FR-11/12, AC-01..03/07) ============ -->
+<div class="overlay" id="modalClose">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3>Đóng quầy</h3><span class="x" onclick="closeModal('modalClose')">✕</span>
+    </div>
+    <div class="modal-body" id="closeBody">
+      <!-- content injected by JS depending on step/scenario -->
+    </div>
+    <div class="modal-foot" id="closeFoot"></div>
+  </div>
+</div>
+
+<!-- ============ DRAWER: CHI TIẾT / LỊCH SỬ (FR-09) ============ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3 id="drawerTitle">Chi tiết yêu cầu</h3>
+    <span class="x" style="cursor:pointer;font-size:18px;color:var(--ink-soft)" onclick="closeDrawer()">✕</span>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<script>
+/* ---------------- state ---------------- */
+let counterStatus = 'active'; // active | closed
+let scenario = 'ok'; // ok | block
+let hasPerm = true;
+let connOk = true;
+let closeStep = 0;
+
+function toggleNav(id){ document.getElementById(id).classList.toggle('open'); }
+function toggleRef(){
+  const t=document.getElementById('refTable'); t.classList.toggle('show');
+  document.getElementById('refChev').textContent = t.classList.contains('show') ? '▴' : '▾';
+}
+
+/* ---------------- toast ---------------- */
+function toast(type, title, msg){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  const icon = type==='success' ? '✔' : type==='error' ? '⛔' : 'ℹ';
+  el.innerHTML = `<span class="t-ic">${icon}</span><div class="t-txt"><b>${title}</b><span>${msg}</span></div>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(20px)'; setTimeout(()=>el.remove(),200); }, 4200);
+}
+
+/* ---------------- modal helpers ---------------- */
+function openModal(id){
+  if(!checkPermOrBlock()) return;
+  if(id==='modalOpen'){
+    document.getElementById('openBlockedMsg').style.display = counterStatus==='active' ? 'flex' : 'none';
+    document.getElementById('openSuccessMsg').style.display = 'none';
+    document.getElementById('openForm').style.opacity = counterStatus==='active' ? '0.45' : '1';
+    document.getElementById('openSubmitBtn').disabled = counterStatus==='active';
+    document.getElementById('openSubmitBtn').textContent = counterStatus==='active' ? 'Quầy đang Hoạt động' : 'Xác nhận mở quầy';
+  }
+  document.getElementById(id).classList.add('show');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+function checkPermOrBlock(){
+  if(!hasPerm){
+    toast('error','Không có quyền thực hiện','Bạn không được cấp quyền mở/đóng quầy cho đơn vị này (FR-10 / AC-05).');
+    return false;
+  }
+  return true;
+}
+
+/* ---------------- MỞ QUẦY ---------------- */
+function submitOpen(){
+  if(counterStatus==='active') return; // guarded already
+  counterStatus='active';
+  document.getElementById('openBlockedMsg').style.display='none';
+  document.getElementById('openSuccessMsg').style.display='flex';
+  document.getElementById('openForm').style.opacity='0.45';
+  document.getElementById('openSubmitBtn').disabled=true;
+  document.getElementById('openSubmitBtn').textContent='Đã mở quầy';
+  refreshStatusCard();
+  toast('success','Mở quầy thành công','Audit log đã được ghi nhận — người mở: GDV_008.');
+  prependRow('Mở quầy','open-op','Đóng','Hoạt động','GDV_008','Mở quầy đầu ca','success');
+  setTimeout(()=>closeModal('modalOpen'), 900);
+}
+
+/* ---------------- ĐÓNG QUẦY FLOW ---------------- */
+function startClose(){
+  if(!checkPermOrBlock()) return;
+  closeStep = 0;
+  renderClose();
+  document.getElementById('modalClose').classList.add('show');
+}
+
+function renderClose(){
+  const body = document.getElementById('closeBody');
+  const foot = document.getElementById('closeFoot');
+
+  if(closeStep===0){
+    body.innerHTML = `
+      <div class="banner-msg info"><span class="ic">ℹ</span>
+        <div><b>Trước khi đóng quầy</b>Hệ thống sẽ kiểm tra toàn bộ giao dịch do GDV thực hiện trong ngày giao dịch hiện tại nhưng chưa được duyệt. Nếu còn tồn tại, hệ thống sẽ chặn đóng quầy.</div>
+      </div>
+      <div class="summary-grid">
+        <div class="k">Mã CN/PGD</div><div class="v">008</div>
+        <div class="k">Tên CN/PGD</div><div class="v">CN TÂN BÌNH</div>
+        <div class="k">Người thực hiện</div><div class="v">KSV_008</div>
+        <div class="k">Thời gian</div><div class="v">26/06/2026 16:51:30</div>
+      </div>`;
+    foot.innerHTML = `
+      <button class="btn" onclick="closeModal('modalClose')">Hủy</button>
+      <button class="btn primary" onclick="runCloseCheck()">Kiểm tra &amp; Đóng quầy</button>`;
+  }
+
+  else if(closeStep===1){
+    body.innerHTML = `<div class="step-box"><div class="spinner"></div>Đang kiểm tra giao dịch chưa được duyệt… (FR-05, FR-12: kiểm tra tại thời điểm commit)</div>`;
+    foot.innerHTML = `<button class="btn" disabled>Đang xử lý…</button>`;
+    setTimeout(()=>{
+      if(!connOk){ closeStep = 4; renderClose(); return; }
+      closeStep = scenario==='ok' ? 2 : 3;
+      renderClose();
+    }, 1100);
+  }
+
+  else if(closeStep===2){
+    // success - no pending transactions
+    body.innerHTML = `
+      <div class="banner-msg success"><span class="ic">✔</span>
+        <div><b>Không có giao dịch chưa được duyệt</b>Đủ điều kiện đóng quầy theo BR-02 / AC-01.</div>
+      </div>
+      <div class="summary-grid">
+        <div class="k">Thời gian đóng</div><div class="v">26/06/2026 16:51:34</div>
+        <div class="k">Người đóng</div><div class="v">KSV_008</div>
+        <div class="k">Kết quả kiểm tra</div><div class="v">0 giao dịch chưa duyệt</div>
+        <div class="k">Trạng thái thay đổi</div><div class="v">Đóng</div>
+      </div>`;
+    foot.innerHTML = `
+      <button class="btn" onclick="closeModal('modalClose')">Hủy</button>
+      <button class="btn danger" onclick="confirmCloseSuccess()">Xác nhận đóng quầy</button>`;
+  }
+
+  else if(closeStep===3){
+    // blocked - pending transactions
+    body.innerHTML = `
+      <div class="banner-msg error"><span class="ic">⛔</span>
+        <div><b>Không thể đóng quầy</b>Còn <strong>3 giao dịch</strong> do GDV thực hiện chưa được duyệt tại business date 26/06/2026 (BR-02 / BR-03 / AC-02 / AC-03).</div>
+      </div>
+      <table class="mini-table">
+        <thead><tr><th>Mã GD</th><th>Loại GD</th><th>Số tiền</th><th>GDV thực hiện</th><th>Thời gian tạo</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          <tr><td>GD0260626001123</td><td>Thu phí (mới)</td><td>1.250.000</td><td>GDV_008</td><td>26/06/2026 14:02:11</td><td><span class="badge pending-text" style="background:#FFF3DC;color:#A56B00">Chờ duyệt</span></td></tr>
+          <tr><td>GD0260626001140</td><td>Nộp tiền Vikki</td><td>5.000.000</td><td>GDV_008</td><td>26/06/2026 15:18:47</td><td><span class="badge" style="background:#FFF3DC;color:#A56B00">Chờ duyệt</span></td></tr>
+          <tr><td>GD0260626001151</td><td>Điều quỹ nội bộ</td><td>2.000.000</td><td>GDV_009</td><td>26/06/2026 16:30:02</td><td><span class="badge" style="background:#FFF3DC;color:#A56B00">Chờ duyệt</span></td></tr>
+        </tbody>
+      </table>
+      <div class="hint" style="margin-top:10px">Xử lý (duyệt/hủy) các giao dịch trên theo quy trình hiện hữu, sau đó bấm "Kiểm tra lại" — không cần thoát màn hình (FR-11 / AC-07).</div>`;
+    foot.innerHTML = `
+      <button class="btn" onclick="closeModal('modalClose')">Đóng</button>
+      <button class="btn outline-primary" onclick="goApprove()">Đi tới xử lý giao dịch</button>
+      <button class="btn primary" onclick="recheck()">↻ Kiểm tra lại</button>`;
+  }
+
+  else if(closeStep===4){
+    // connection failure exception (4.7)
+    body.innerHTML = `
+      <div class="banner-msg error"><span class="ic">⚠</span>
+        <div><b>Mất kết nối khi đang xử lý</b>Hệ thống không thể xác nhận kết quả kiểm tra. Trạng thái quầy được giữ nguyên (không đóng quầy ở trạng thái không xác định) — theo mục 4.7 Exception Handling.</div>
+      </div>
+      <div class="hint">Vui lòng thử lại sau khi kết nối ổn định. Không có bản ghi đóng quầy nào được tạo (đảm bảo idempotent, không trùng lặp).</div>`;
+    foot.innerHTML = `
+      <button class="btn" onclick="closeModal('modalClose')">Đóng</button>
+      <button class="btn primary" onclick="closeStep=0; renderClose();">Thử lại</button>`;
+  }
+
+  else if(closeStep===5){
+    body.innerHTML = `
+      <div class="banner-msg success"><span class="ic">✔</span>
+        <div><b>Đóng quầy thành công</b>Trạng thái quầy đã chuyển sang Đóng. Audit log đã ghi nhận đầy đủ (FR-08 / AC-04).</div>
+      </div>
+      <div class="summary-grid">
+        <div class="k">Thời gian đóng</div><div class="v">26/06/2026 16:52:05</div>
+        <div class="k">Người đóng</div><div class="v">KSV_008</div>
+        <div class="k">Kết quả kiểm tra</div><div class="v">0 giao dịch chưa duyệt</div>
+        <div class="k">Trạng thái thay đổi</div><div class="v">Đóng</div>
+      </div>`;
+    foot.innerHTML = `<button class="btn primary" onclick="closeModal('modalClose')">Hoàn tất</button>`;
+  }
+}
+
+function runCloseCheck(){ closeStep = 1; renderClose(); }
+
+function recheck(){
+  // simulate that pending transactions were resolved in the meantime
+  scenario = 'ok';
+  setScenario('ok', true);
+  closeStep = 1;
+  renderClose();
+  toast('info','Đang kiểm tra lại','Hệ thống chạy lại kiểm tra giao dịch chưa duyệt (FR-11).');
+}
+
+function goApprove(){
+  closeModal('modalClose');
+  toast('info','Chuyển sang xử lý giao dịch','(Demo) Mở màn hình duyệt giao dịch ở một tab khác — sau khi xử lý xong, quay lại và bấm "Kiểm tra lại".');
+}
+
+function confirmCloseSuccess(){
+  closeStep = 5;
+  counterStatus = 'closed';
+  renderClose();
+  refreshStatusCard();
+  prependRow('Đóng quầy','close-op','Hoạt động','Đóng','KSV_008','Đóng quầy — đủ điều kiện','success');
+}
+
+/* ---------------- status card refresh ---------------- */
+function refreshStatusCard(){
+  const pill = document.getElementById('counterPill');
+  const txt = document.getElementById('counterPillText');
+  const btnOpen = document.getElementById('btnOpenCounter');
+  const btnClose = document.getElementById('btnCloseCounter');
+  if(counterStatus==='active'){
+    pill.className='pill active'; txt.textContent='Hoạt động';
+    btnOpen.disabled = true; btnClose.disabled = false;
+  } else {
+    pill.className='pill closed'; txt.textContent='Đóng';
+    btnOpen.disabled = false; btnClose.disabled = true;
+  }
+}
+
+function prependRow(opLabel, opClass, before, after, user, note, resultClass){
+  const tbody = document.getElementById('listBody');
+  const tr = document.createElement('tr');
+  const now = new Date();
+  const ts = now.toLocaleString('vi-VN');
+  tr.innerHTML = `
+    <td><input type="checkbox"></td>
+    <td><span class="req-link">YC-${opClass==='open-op'?'MQ':'DQ'}-NEW-${Math.floor(Math.random()*9000+1000)}</span></td>
+    <td>008</td><td>CN TÂN BÌNH</td>
+    <td><span class="badge ${opClass}">${opLabel}</span></td>
+    <td><span class="badge muted">${before}</span></td>
+    <td><span class="badge ${resultClass}">${after}</span></td>
+    <td>${ts}</td>
+    <td>${user}</td>
+    <td>${note}</td>
+    <td><button class="btn ghost">Xem</button></td>`;
+  tbody.prepend(tr);
+}
+
+/* ---------------- DEMO DOCK controls ---------------- */
+function setScenario(s, silent){
+  scenario = s;
+  document.getElementById('scnOk').classList.toggle('on', s==='ok');
+  document.getElementById('scnBlock').classList.toggle('on', s==='block');
+  if(!silent){
+    document.getElementById('pendingPillText').textContent = s==='ok' ? '0 giao dịch' : '3 giao dịch';
+    document.getElementById('pendingPill').className = s==='ok' ? 'pill active' : 'pill pending';
+  }
+}
+function setPerm(v){
+  hasPerm = v;
+  document.getElementById('permYes').classList.toggle('on', v);
+  document.getElementById('permNo').classList.toggle('on', !v);
+}
+function setConn(v){
+  connOk = v;
+  document.getElementById('connOk').classList.toggle('on', v);
+  document.getElementById('connFail').classList.toggle('on', !v);
+}
+
+/* ---------------- DRAWER (FR-09) ---------------- */
+function viewDetail(reqId, success){
+  document.getElementById('drawerTitle').textContent = 'Chi tiết yêu cầu ' + reqId;
+  const isOpen = reqId.includes('MQ');
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="summary-grid">
+      <div class="k">Mã yêu cầu</div><div class="v">${reqId}</div>
+      <div class="k">Loại nghiệp vụ</div><div class="v">${isOpen?'Mở quầy':'Đóng quầy'}</div>
+      <div class="k">Mã CN/PGD</div><div class="v">008</div>
+      <div class="k">Tên CN/PGD</div><div class="v">CN TÂN BÌNH</div>
+      <div class="k">Kết quả</div><div class="v">${success?'Thành công':'Bị chặn / Từ chối'}</div>
+      <div class="k">Người tạo yêu cầu</div><div class="v">${isOpen?'GDV_008':'KSV_008'}</div>
+    </div>
+    <h3 style="font-size:13.5px;margin:20px 0 4px;">🕘 Lịch sử mở/đóng quầy — 008 CN TÂN BÌNH</h3>
+    <div class="timeline">
+      <div class="t-item"><div class="t-time">26/06/2026 16:52</div><div class="t-title">Đóng quầy thành công</div><div class="t-desc">Người thực hiện: KSV_008 · Kết quả kiểm tra: 0 GD chưa duyệt</div></div>
+      <div class="t-item"><div class="t-time">26/06/2026 16:51</div><div class="t-title">Yêu cầu đóng quầy bị chặn</div><div class="t-desc">Còn 3 giao dịch chưa được duyệt</div></div>
+      <div class="t-item"><div class="t-time">26/06/2026 08:02</div><div class="t-title">Mở quầy thành công</div><div class="t-desc">Người thực hiện: GDV_008</div></div>
+      <div class="t-item"><div class="t-time">24/06/2026 17:05</div><div class="t-title">Đóng quầy thành công</div><div class="t-desc">Người thực hiện: KSV_008 · Kết quả kiểm tra: 0 GD chưa duyệt</div></div>
+      <div class="t-item"><div class="t-time">24/06/2026 08:00</div><div class="t-title">Mở quầy thành công</div><div class="t-desc">Người thực hiện: GDV_008</div></div>
+    </div>`;
+  document.getElementById('drawer').classList.add('show');
+  document.getElementById('drawerOverlay').classList.add('show');
+}
+function viewHistory(){ viewDetail('Lịch sử quầy 008', true); }
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('show');
+  document.getElementById('drawerOverlay').classList.remove('show');
+}
+
+/* init */
+refreshStatusCard();
+</script>
+</body>
+</html>
